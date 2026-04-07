@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analisador de Currículos — IA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ── Reset & Base ──────────────────────────────── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #0c0d0f;
+        --surface: #14161a;
+        --border: #1f2228;
+        --accent: #00e5a0;
+        --accent-dim: #00e5a015;
+        --text: #e8eaf0;
+        --muted: #6b7280;
+        --danger: #ff5c5c;
+        --warn: #f5a623;
+        --mono: "Space Mono", monospace;
+        --sans: "DM Sans", sans-serif;
+        --radius: 10px;
+        --trans: 160ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 48px 16px 80px;
+      }
+
+      /* ── Layout ────────────────────────────────────── */
+      .wrapper {
+        width: 100%;
+        max-width: 820px;
+      }
+
+      /* ── Header ────────────────────────────────────── */
+      header {
+        margin-bottom: 48px;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        padding: 3px 10px;
+        border-radius: 4px;
+        margin-bottom: 16px;
+      }
+      h1 {
+        font-family: var(--mono);
+        font-size: clamp(24px, 5vw, 38px);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+      }
+      h1 span {
+        color: var(--accent);
+      }
+      .subtitle {
+        color: var(--muted);
+        font-size: 15px;
+        margin-top: 10px;
+      }
+
+      /* ── Card ──────────────────────────────────────── */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 32px;
+        margin-bottom: 28px;
+      }
+
+      /* ── Drop zone ─────────────────────────────────── */
+      #dropzone {
+        border: 1.5px dashed var(--border);
+        border-radius: var(--radius);
+        padding: 48px 24px;
+        text-align: center;
+        cursor: pointer;
+        transition:
+          border-color var(--trans),
+          background var(--trans);
+        position: relative;
+      }
+      #dropzone:hover,
+      #dropzone.dragover {
+        border-color: var(--accent);
+        background: var(--accent-dim);
+      }
+      #dropzone input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+      }
+      .drop-icon {
+        font-size: 36px;
+        margin-bottom: 12px;
+        line-height: 1;
+      }
+      .drop-label {
+        font-size: 15px;
+        color: var(--text);
+        font-weight: 500;
+      }
+      .drop-hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+      #file-name {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--accent);
+        margin-top: 14px;
+        display: none;
+      }
+
+      /* ── Button ────────────────────────────────────── */
+      button {
+        display: block;
+        width: 100%;
+        margin-top: 20px;
+        padding: 14px;
+        background: var(--accent);
+        color: #000;
+        border: none;
+        border-radius: var(--radius);
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition:
+          opacity var(--trans),
+          transform var(--trans);
+      }
+      button:hover:not(:disabled) {
+        opacity: 0.85;
+        transform: translateY(-1px);
+      }
+      button:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* ── Progress ──────────────────────────────────── */
+      #progress {
+        display: none;
+        margin-top: 20px;
+      }
+      .progress-bar {
+        height: 3px;
+        background: var(--border);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: var(--accent);
+        width: 0%;
+        transition: width 0.4s ease;
+        animation: indeterminate 1.6s ease infinite;
+      }
+      @keyframes indeterminate {
+        0% {
+          width: 0%;
+          margin-left: 0%;
+        }
+        50% {
+          width: 60%;
+          margin-left: 20%;
+        }
+        100% {
+          width: 0%;
+          margin-left: 100%;
+        }
+      }
+      .progress-text {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 8px;
+        font-family: var(--mono);
+      }
+
+      /* ── Error ─────────────────────────────────────── */
+      #error-box {
+        display: none;
+        background: #1a0f0f;
+        border: 1px solid var(--danger);
+        border-radius: var(--radius);
+        padding: 14px 18px;
+        color: var(--danger);
+        font-size: 13px;
+        margin-top: 16px;
+      }
+
+      /* ── Results ───────────────────────────────────── */
+      #results {
+        display: none;
+      }
+      .section-title {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+      }
+      .result-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      @media (max-width: 600px) {
+        .result-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Score ring */
+      .score-row {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        margin-bottom: 28px;
+      }
+      .score-ring {
+        flex-shrink: 0;
+        width: 88px;
+        height: 88px;
+        position: relative;
+      }
+      svg.ring {
+        width: 88px;
+        height: 88px;
+        transform: rotate(-90deg);
+      }
+      .ring-bg {
+        fill: none;
+        stroke: var(--border);
+        stroke-width: 7;
+      }
+      .ring-fill {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 7;
+        stroke-linecap: round;
+        stroke-dasharray: 245;
+        stroke-dashoffset: 245;
+        transition: stroke-dashoffset 1s ease;
+      }
+      .score-num {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--mono);
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .score-info h2 {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .score-info .level {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      /* Field */
+      .field {
+        margin-bottom: 14px;
+      }
+      .field-label {
+        font-size: 11px;
+        color: var(--muted);
+        font-family: var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      .field-value {
+        font-size: 14px;
+        color: var(--text);
+        word-break: break-word;
+      }
+      .field-value a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .field-value a:hover {
+        text-decoration: underline;
+      }
+
+      /* Tags */
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .tag-item {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 3px 8px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--text);
+        transition:
+          border-color var(--trans),
+          color var(--trans);
+      }
+      .tag-item:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .tag-item.accent {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      /* List items */
+      .item-list {
+        list-style: none;
+      }
+      .item-list li {
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+      .item-list li strong {
+        color: var(--accent);
+      }
+
+      /* Suggestions */
+      .suggestion {
+        padding: 10px 14px;
+        border-left: 2px solid var(--warn);
+        background: #1a160c;
+        border-radius: 0 6px 6px 0;
+        font-size: 13px;
+        margin-bottom: 8px;
+        color: #f0d9a8;
+      }
+      .strength {
+        padding: 10px 14px;
+        border-left: 2px solid var(--accent);
+        background: var(--accent-dim);
+        border-radius: 0 6px 6px 0;
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      /* Copy JSON */
+      .copy-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        width: auto;
+        margin-top: 0;
+        padding: 7px 14px;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        border-radius: 6px;
+        cursor: pointer;
+        transition:
+          color var(--trans),
+          border-color var(--trans);
+      }
+      .copy-btn:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+        transform: none;
+      }
+
+      .results-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <!-- Header -->
+      <header>
+        <div class="tag">Powered by IA</div>
+        <h1>Análise de<br /><span>Currículo</span></h1>
+        <p class="subtitle">
+          Extrai dados, skills e pontos de melhoria automaticamente.
+        </p>
+      </header>
+
+      <!-- Upload form -->
+      <div class="card" id="upload-card">
+        <div class="section-title">Enviar Currículo</div>
+
+        <div id="dropzone">
+          <input type="file" id="file-input" accept=".pdf,.txt" />
+          <div class="drop-icon">📄</div>
+          <div class="drop-label">Clique ou arraste o arquivo aqui</div>
+          <div class="drop-hint">PDF ou TXT · Máx. 5 MB</div>
+          <div id="file-name"></div>
+        </div>
+
+        <button id="submit-btn" disabled>Analisar Currículo →</button>
+
+        <div id="progress">
+          <div class="progress-bar"><div class="progress-fill"></div></div>
+          <div class="progress-text">Analisando com IA…</div>
+        </div>
+
+        <div id="error-box"></div>
+      </div>
+
+      <!-- Results -->
+      <div id="results">
+        <div class="card">
+          <div class="results-header">
+            <div class="section-title" style="margin-bottom: 0">Resultado</div>
+            <button class="copy-btn" id="copy-btn">⎘ Copiar JSON</button>
+          </div>
+
+          <!-- Score + nome -->
+          <div class="score-row">
+            <div class="score-ring">
+              <svg class="ring" viewBox="0 0 88 88">
+                <circle class="ring-bg" cx="44" cy="44" r="39" />
+                <circle
+                  class="ring-fill"
+                  cx="44"
+                  cy="44"
+                  r="39"
+                  id="ring-fill"
+                />
+              </svg>
+              <div class="score-num" id="score-num">0</div>
+            </div>
+            <div class="score-info">
+              <h2 id="res-nome">—</h2>
+              <div class="level" id="res-nivel">—</div>
+              <div
+                class="level"
+                id="res-cargo"
+                style="margin-top: 4px; color: #e8eaf088"
+              >
+                —
+              </div>
+            </div>
+          </div>
+
+          <!-- Contato / Redes -->
+          <div class="result-grid">
+            <div>
+              <div class="section-title">Contato</div>
+              <div class="field">
+                <div class="field-label">Email</div>
+                <div class="field-value" id="res-email">—</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Telefone</div>
+                <div class="field-value" id="res-tel">—</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Localidade</div>
+                <div class="field-value" id="res-cidade">—</div>
+              </div>
+            </div>
+            <div>
+              <div class="section-title">Redes Sociais</div>
+              <div class="field">
+                <div class="field-label">LinkedIn</div>
+                <div class="field-value" id="res-linkedin">—</div>
+              </div>
+              <div class="field">
+                <div class="field-label">GitHub</div>
+                <div class="field-value" id="res-github">—</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Portfólio</div>
+                <div class="field-value" id="res-portfolio">—</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Outras</div>
+                <div class="field-value" id="res-outras">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skills -->
+          <div class="section-title">Skills Técnicas</div>
+          <div class="field">
+            <div class="field-label">Linguagens</div>
+            <div class="tags" id="res-langs"></div>
+          </div>
+          <div class="field">
+            <div class="field-label">Frameworks & Libs</div>
+            <div class="tags" id="res-frameworks"></div>
+          </div>
+          <div class="field">
+            <div class="field-label">Banco de Dados</div>
+            <div class="tags" id="res-db"></div>
+          </div>
+          <div class="field">
+            <div class="field-label">Cloud / DevOps</div>
+            <div class="tags" id="res-cloud"></div>
+          </div>
+          <div class="field">
+            <div class="field-label">Palavras-chave</div>
+            <div class="tags" id="res-keywords"></div>
+          </div>
+        </div>
+
+        <!-- Experiência + Projetos -->
+        <div class="result-grid">
+          <div class="card">
+            <div class="section-title">Experiências</div>
+            <ul class="item-list" id="res-exp"></ul>
+          </div>
+          <div class="card">
+            <div class="section-title">Projetos</div>
+            <ul class="item-list" id="res-proj"></ul>
+          </div>
+        </div>
+
+        <!-- Formação + Idiomas -->
+        <div class="result-grid">
+          <div class="card">
+            <div class="section-title">Formação</div>
+            <ul class="item-list" id="res-form"></ul>
+          </div>
+          <div class="card">
+            <div class="section-title">Idiomas</div>
+            <ul class="item-list" id="res-idiomas"></ul>
+          </div>
+        </div>
+
+        <!-- Pontos fortes + Sugestões -->
+        <div class="result-grid">
+          <div class="card">
+            <div class="section-title">Pontos Fortes</div>
+            <div id="res-fortes"></div>
+          </div>
+          <div class="card">
+            <div class="section-title">Sugestões de Melhoria</div>
+            <div id="res-sug"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ── Funções de segurança
+      function escapeHtml(text) {
+        if (!text) return "";
+        const map = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;",
+        };
+        return String(text).replace(/[&<>"']/g, (c) => map[c]);
+      }
+
+      function isValidUrl(str) {
+        try {
+          const url = new URL(str);
+          return url.protocol === "http:" || url.protocol === "https:";
+        } catch {
+          return false;
+        }
+      }
+
+      // ── Elements
+      const dropzone = document.getElementById("dropzone");
+      const fileInput = document.getElementById("file-input");
+      const fileLabel = document.getElementById("file-name");
+      const submitBtn = document.getElementById("submit-btn");
+      const progress = document.getElementById("progress");
+      const errorBox = document.getElementById("error-box");
+      const results = document.getElementById("results");
+      const copyBtn = document.getElementById("copy-btn");
+
+      let selectedFile = null;
+      let lastResult = null;
+
+      // ── Drag & drop
+      dropzone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropzone.classList.add("dragover");
+      });
+      dropzone.addEventListener("dragleave", () =>
+        dropzone.classList.remove("dragover"),
+      );
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("dragover");
+        const f = e.dataTransfer.files[0];
+        if (f) setFile(f);
+      });
+
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files[0]) setFile(fileInput.files[0]);
+      });
+
+      function setFile(file) {
+        selectedFile = file;
+        fileLabel.textContent = `📎 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        fileLabel.style.display = "block";
+        submitBtn.disabled = false;
+        hideError();
+      }
+
+      // ── Submit
+      submitBtn.addEventListener("click", async () => {
+        if (!selectedFile) return;
+
+        setLoading(true);
+        hideError();
+        results.style.display = "none";
+
+        const formData = new FormData();
+        formData.append("resume", selectedFile);
+
+        try {
+          const res = await fetch("/api/analyze", {
+            method: "POST",
+            body: formData,
+          });
+          const json = await res.json();
+
+          if (!res.ok) {
+            showError(
+              json.error || json.errors?.join(", ") || "Erro desconhecido.",
+            );
+            return;
+          }
+
+          // ✅ VALIDAÇÃO: Verificar se data existe e tem estrutura mínima
+          if (!json.data || typeof json.data !== "object") {
+            showError("Resposta do servidor inválida. Tente novamente.");
+            return;
+          }
+
+          // ✅ Validar se não é resposta fake/de teste
+          if (
+            json.data.score_geral === 50 &&
+            json.data.pontos_fortes?.includes(
+              "PDF enviado com sucesso para CVParse",
+            )
+          ) {
+            showError(
+              "API ainda está processando. Aguarde alguns minutos e tente novamente.",
+            );
+            return;
+          }
+
+          lastResult = json.data;
+          renderResults(json.data);
+          results.style.display = "block";
+          results.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (e) {
+          showError("Falha de conexão. Verifique se o servidor está rodando.");
+          console.error("Fetch error:", e);
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      // ── Render
+      function renderResults(d) {
+        // Score
+        const score = d.score_geral ?? 0;
+        document.getElementById("score-num").textContent = score;
+        const circ = 2 * Math.PI * 39;
+        const fill = document.getElementById("ring-fill");
+        setTimeout(() => {
+          fill.style.strokeDashoffset = circ - (circ * score) / 100;
+        }, 100);
+
+        setText("res-nome", d.nome);
+        setText("res-nivel", d.nivel);
+        setText("res-cargo", d.cargo_objetivo);
+
+        // Contato
+        setText("res-email", d.contato?.email);
+        setText("res-tel", d.contato?.telefone);
+        setText("res-cidade", d.contato?.cidade);
+
+        // Redes
+        setLink("res-linkedin", d.redes_sociais?.linkedin);
+        setLink("res-github", d.redes_sociais?.github);
+        setLink("res-portfolio", d.redes_sociais?.portfolio);
+        setTags("res-outras", d.redes_sociais?.outras || []);
+
+        // Skills
+        setTags("res-langs", d.linguagens_programacao, true);
+        setTags("res-frameworks", d.frameworks_libs);
+        setTags("res-db", d.banco_dados);
+        setTags("res-cloud", d.cloud_devops);
+        setTags("res-keywords", d.palavras_chave);
+
+        // Experiências
+        const expEl = document.getElementById("res-exp");
+        expEl.innerHTML = "";
+        (d.experiencias || []).forEach((e) => {
+          const li = document.createElement("li");
+          const cargo = escapeHtml(e.cargo || "Cargo");
+          const empresa = escapeHtml(e.empresa || "?");
+          const periodo = escapeHtml(e.periodo || "");
+          const descricao = escapeHtml(e.descricao || "");
+          li.innerHTML = `<strong>${cargo}</strong> — ${empresa}<br>
+          <small style="color:var(--muted)">${periodo}</small>
+          <p style="margin-top:4px;font-size:13px;color:#b0b8c8">${descricao}</p>`;
+          expEl.appendChild(li);
+        });
+        if (!d.experiencias?.length)
+          expEl.innerHTML =
+            '<li style="color:var(--muted)">Nenhuma experiência listada.</li>';
+
+        // Projetos
+        const projEl = document.getElementById("res-proj");
+        projEl.innerHTML = "";
+        (d.projetos || []).forEach((p) => {
+          const li = document.createElement("li");
+          const nome = escapeHtml(p.nome || "Projeto");
+          const techs = (p.tecnologias || []).map(escapeHtml).join(", ");
+          const descricao = escapeHtml(p.descricao || "");
+          li.innerHTML = `<strong>${nome}</strong><br>
+          <small style="color:var(--accent)">${techs}</small>
+          <p style="margin-top:4px;font-size:13px;color:#b0b8c8">${descricao}</p>`;
+          projEl.appendChild(li);
+        });
+        if (!d.projetos?.length)
+          projEl.innerHTML =
+            '<li style="color:var(--muted)">Nenhum projeto listado.</li>';
+
+        // Formação
+        const formEl = document.getElementById("res-form");
+        formEl.innerHTML = "";
+        (d.formacao || []).forEach((f) => {
+          const li = document.createElement("li");
+          const curso = escapeHtml(f.curso);
+          const instituicao = escapeHtml(f.instituicao);
+          const periodo = escapeHtml(f.periodo || "");
+          const status = escapeHtml(f.status || "");
+          li.innerHTML = `<strong>${curso}</strong><br>
+          <small style="color:var(--muted)">${instituicao} · ${periodo} · ${status}</small>`;
+          formEl.appendChild(li);
+        });
+
+        // Idiomas
+        const idiomasEl = document.getElementById("res-idiomas");
+        idiomasEl.innerHTML = "";
+        (d.idiomas || []).forEach((i) => {
+          const li = document.createElement("li");
+          const idioma = escapeHtml(i.idioma);
+          const nivel = escapeHtml(i.nivel);
+          li.innerHTML = `<strong>${idioma}</strong> — ${nivel}`;
+          idiomasEl.appendChild(li);
+        });
+
+        // Pontos fortes
+        const fortesEl = document.getElementById("res-fortes");
+        fortesEl.innerHTML = "";
+        (d.pontos_fortes || []).forEach((s) => {
+          const div = document.createElement("div");
+          div.className = "strength";
+          div.textContent = "✓ " + escapeHtml(s);
+          fortesEl.appendChild(div);
+        });
+
+        // Sugestões
+        const sugEl = document.getElementById("res-sug");
+        sugEl.innerHTML = "";
+        (d.sugestoes_melhoria || []).forEach((s) => {
+          const div = document.createElement("div");
+          div.className = "suggestion";
+          div.textContent = "→ " + escapeHtml(s);
+          sugEl.appendChild(div);
+        });
+      }
+
+      function setText(id, val) {
+        document.getElementById(id).textContent = val || "—";
+      }
+      function setLink(id, url) {
+        const el = document.getElementById(id);
+        if (!url) {
+          el.textContent = "—";
+          return;
+        }
+        if (!isValidUrl(url)) {
+          el.textContent = "—";
+          return;
+        }
+        el.innerHTML = `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(url)}</a>`;
+      }
+      function setTags(id, arr, accent = false) {
+        const el = document.getElementById(id);
+        el.innerHTML = "";
+        (arr || []).forEach((t) => {
+          const span = document.createElement("span");
+          span.className = "tag-item" + (accent ? " accent" : "");
+          span.textContent = escapeHtml(t);
+          el.appendChild(span);
+        });
+        if (!arr?.length)
+          el.innerHTML =
+            '<span style="color:var(--muted);font-size:13px">—</span>';
+      }
+
+      // ── UI helpers
+      function setLoading(on) {
+        submitBtn.disabled = on;
+        submitBtn.textContent = on ? "Analisando…" : "Analisar Currículo →";
+        progress.style.display = on ? "block" : "none";
+      }
+      function showError(msg) {
+        errorBox.textContent = "⚠ " + msg;
+        errorBox.style.display = "block";
+      }
+      function hideError() {
+        errorBox.style.display = "none";
+      }
+
+      // ── Copy JSON
+      copyBtn.addEventListener("click", () => {
+        if (!lastResult) return;
+        navigator.clipboard
+          .writeText(JSON.stringify(lastResult, null, 2))
+          .then(() => {
+            copyBtn.textContent = "✓ Copiado!";
+            setTimeout(() => (copyBtn.textContent = "⎘ Copiar JSON"), 2000);
+          });
+      });
+    </script>
+  </body>
+</html>

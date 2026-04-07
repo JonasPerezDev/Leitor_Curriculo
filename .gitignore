@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime
+uploads/
+*.tmp
+temp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation (keep only README.md)
+GITHUB_FINAL.md
+GITHUB_PUSH.md
+DEPLOYMENT.md
+
+# Test files
+test*.js
+test*.pdf
+test*.txt
+.sixth/
+curriculo_test.txt
+curriculo_teste.txt
+response_mock.json
+create_pdf.js
+create_pdf.mjs
+TESTE_API.md
