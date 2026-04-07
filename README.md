@@ -107,7 +107,7 @@ curl -X POST http://localhost:3000/api/analyze \
   "nome": "Jonas Perez",
   "contato": {
     "email": "jonas@example.com",
-    "telefone": "(12) 99249-3356",
+    "telefone": "(11) 12345-6789",
     "cidade": "São Paulo"
   },
   "redes_sociais": {
