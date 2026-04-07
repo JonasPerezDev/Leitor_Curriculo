@@ -38,61 +38,9 @@ await fs.mkdir(UPLOAD_DIR, { recursive: true });
 
 const app = express();
 
-// ── Segurança: Headers HTTP ──────────────────────────────────────────────────
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"], // inline js no index.html
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:"],
-        connectSrc: ["'self'"],
-      },
-    },
-    crossOriginEmbedderPolicy: false,
-  }),
-);
-
-// ── CORS ─────────────────────────────────────────────────────────────────────
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000")
-  .split(",")
-  .map((o) => o.trim());
-
-app.use(
-  cors({
-    origin: (origin, cb) => {
-      // Permite sem origin (Postman, curl) apenas em dev
-      if (!origin && process.env.NODE_ENV !== "production")
-        return cb(null, true);
-      if (allowedOrigins.includes(origin)) return cb(null, true);
-      cb(new Error(`CORS: origem bloqueada — ${origin}`));
-    },
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type", "X-Request-ID"],
-  }),
-);
-
 // ── Body parser ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: "100kb" }));
-
-// ── Rate limiting ─────────────────────────────────────────────────────────────
-const apiLimiter = rateLimit({
-  windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: Number(process.env.RATE_LIMIT_MAX) || 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => req.ip,
-  handler: (req, res) => {
-    logger.warn(`Rate limit atingido — IP: ${req.ip}`);
-    res.status(429).json({
-      error: "Muitas requisições. Aguarde alguns minutos e tente novamente.",
-    });
-  },
-});
-
-app.use("/api/", apiLimiter);
+app.use(express.static(PUBLIC_DIR));
 
 // ── Request ID middleware ─────────────────────────────────────────────────────
 app.use((req, _res, next) => {
