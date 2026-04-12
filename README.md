@@ -1,107 +1,111 @@
-# Resume Analyzer
+# Analisador de Currículo
 
-> **AI-powered resume analysis with intelligent fallback mechanisms — CVParse integration + regex-based extraction**
+> **Análise de currículo com IA e mecanismos inteligentes de fallback — Integração CVParse + extração baseada em regex**
 >
-> ✨ **Built with GitHub Copilot** — Senior-level architecture designed with AI assistance
+> ✨ **Construído com GitHub Copilot** — Arquitetura de nível avançado projetada com assistência de IA
+>
+> 👨‍💻 **Desenvolvido por Jonas Perez** — Dev Front-End Junior
 
 ![Node.js](https://img.shields.io/badge/Node.js-16+-green)
 ![Express](https://img.shields.io/badge/Express-4.19-blue)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![AI-Built](https://img.shields.io/badge/Built%20with-GitHub%20Copilot%20AI-blue)
 
-## Overview
+## Visão Geral
 
-A professional-grade backend service for analyzing resumes/CVs. Supports PDF and TXT file processing with two-tier analysis:
+Serviço backend profissional para análise de currículos/CVs. Suporta processamento de arquivos PDF e TXT com análise em dois níveis:
 
-1. **Primary**: CVParse API for accurate ML-based resume parsing
-2. **Fallback**: Regex-based extraction with intelligent data detection
+1. **Principal**: API CVParse para análise precisa de currículos baseada em ML
+2. **Fallback**: Extração baseada em regex com detecção inteligente de dados
 
-### Key Features
+### Recursos Principais
 
-- ✅ **PDF & TXT Support** — Automatic file type detection and processing
-- ✅ **CVParse Integration** — Async job polling with configurable retry logic
-- ✅ **Smart Fallback** — Regex extraction when primary analysis unavailable
-- ✅ **Zero API Dependencies** — Fallback works without external API keys
-- ✅ **Data Extraction** — Name, email, phone, location, LinkedIn/GitHub profiles
-- ✅ **Tech Stack Detection** — Languages, frameworks, databases, cloud/DevOps tools
-- ✅ **Structured Output** — JSON response with score, level assessment, suggestions
-- ✅ **Production Ready** — Error handling, logging, rate limiting
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| **Runtime** | Node.js 16+ |
-| **Framework** | Express.js |
-| **PDF Parsing** | pdf-parse |
-| **HTTP Client** | axios |
-| **File Upload** | multer |
-| **Logging** | winston |
-| **Utilities** | uuid, dotenv |
+- ✅ **Suporte PDF & TXT** — Detecção automática de tipo de arquivo e processamento
+- ✅ **Integração CVParse** — Polling de trabalho assíncrono com lógica de retry configurável
+- ✅ **Fallback Inteligente** — Extração por regex quando análise primária indisponível
+- ✅ **Zero Dependências de API** — Fallback funciona sem chaves de API externas
+- ✅ **Extração de Dados** — Nome, email, telefone, localização, perfis LinkedIn/GitHub
+- ✅ **Detecção de Stack de Tecnologia** — Linguagens, frameworks, bancos de dados, ferramentas cloud/DevOps
+- ✅ **Saída Estruturada** — Resposta JSON com pontuação, avaliação de nível e sugestões
+- ✅ **Pronto para Produção** — Tratamento de erros, logging, rate limiting
 
 ---
 
-## Quick Start
+## Stack de Tecnologia
 
-### Prerequisites
+| Camada                | Tecnologia   |
+| --------------------- | ------------ |
+| **Runtime**           | Node.js 16+  |
+| **Framework**         | Express.js   |
+| **Parsing de PDF**    | pdf-parse    |
+| **Cliente HTTP**      | axios        |
+| **Upload de Arquivo** | multer       |
+| **Logging**           | winston      |
+| **Utilitários**       | uuid, dotenv |
+
+---
+
+## Início Rápido
+
+### Pré-requisitos
+
 - Node.js 16+
-- npm or yarn
+- npm ou yarn
 
-### Installation
+### Instalação
 
 ```bash
-# Clone repository
+# Clonar repositório
 git clone https://github.com/JonasPerezDev/resume-analyzer.git
 cd resume-analyzer
 
-# Install dependencies
+# Instalar dependências
 npm install
 
-# Configure environment (optional — regex extraction works without API key)
+# Configurar ambiente (opcional — extração por regex funciona sem chave de API)
 cp .env.example .env
 
-# Start development server
+# Iniciar servidor de desenvolvimento
 npm run dev
 ```
 
-Server runs on `http://localhost:3000`
+Servidor executado em `http://localhost:3000`
 
 ---
 
-## Configuration
+## Configuração
 
-### Environment Variables
+### Variáveis de Ambiente
 
-Create `.env` based on `.env.example`:
+Criar `.env` baseado em `.env.example`:
 
 ```env
-# Server
+# Servidor
 NODE_ENV=development
 PORT=3000
 
-# CVParse API (optional)
+# API CVParse (opcional)
 AI_PROVIDER=cvparse
-CVPARSE_API_KEY=your_key_here
+CVPARSE_API_KEY=sua_chave_aqui
 ```
 
-**Note**: System works without `CVPARSE_API_KEY` — automatically uses regex extraction fallback.
+**Nota**: Sistema funciona sem `CVPARSE_API_KEY` — usa automaticamente fallback de extração by regex.
 
 ---
 
-## API Endpoints
+## Endpoints da API
 
-### Upload & Analyze
+### Upload e Análise
 
 **POST** `/api/analyze`
 
 ```bash
 curl -X POST http://localhost:3000/api/analyze \
-  -F "file=@resume.pdf"
+  -F "file=@curriculo.pdf"
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "nome": "Jonas Perez",
@@ -117,28 +121,10 @@ curl -X POST http://localhost:3000/api/analyze \
     "githubUsername": "@JonasPerezDev"
   },
   "nivel": "Sênior",
-  "linguagens_programacao": [
-    "JavaScript",
-    "TypeScript",
-    "Python",
-    "Go",
-    "PHP"
-  ],
-  "frameworks_libs": [
-    "React",
-    "Express",
-    "Django"
-  ],
-  "banco_dados": [
-    "PostgreSQL",
-    "MongoDB",
-    "MySQL"
-  ],
-  "cloud_devops": [
-    "AWS",
-    "Docker",
-    "Kubernetes"
-  ],
+  "linguagens_programacao": ["JavaScript", "TypeScript", "Python", "Go", "PHP"],
+  "frameworks_libs": ["React", "Express", "Django"],
+  "banco_dados": ["PostgreSQL", "MongoDB", "MySQL"],
+  "cloud_devops": ["AWS", "Docker", "Kubernetes"],
   "pontos_fortes": [
     "✅ Seu PDF foi processado com sucesso!",
     "✅ Dados extraídos do arquivo"
@@ -147,7 +133,7 @@ curl -X POST http://localhost:3000/api/analyze \
 }
 ```
 
-### Health Check
+### Verificação de Saúde
 
 **GET** `/api/health`
 
@@ -157,61 +143,63 @@ curl http://localhost:3000/api/health
 
 ---
 
-## How It Works
+## Como Funciona
 
-### Processing Pipeline
+### Pipeline de Processamento
 
 ```
-Resume File
+Arquivo de Currículo
     ↓
-[Validation]
+[Validação]
     ↓
 ┌─────────────────────────────┐
-│ Tier 1: CVParse API         │ ← Primary (if key available)
-│ • File upload               │
-│ • Async job polling (5 min) │
+│ Nível 1: API CVParse        │ ← Principal (se chave disponível)
+│ • Upload de arquivo         │
+│ • Polling de trabalho async │
+│ • (padrão: 5 min)           │
 └─────────────────────────────┘
     ↓
-[Empty result?]
-    ↓ Yes
+[Resultado vazio?]
+    ↓ Sim
 ┌─────────────────────────────┐
-│ Tier 2: Regex Extraction    │ ← Automatic fallback
-│ • PDF text extraction       │
-│ • Intelligent pattern match │
-│ • No API required           │
+│ Nível 2: Extração Regex     │ ← Fallback automático
+│ • Extração de texto PDF     │
+│ • Correspondência inteligente│
+│ • Sem API necessária        │
 └─────────────────────────────┘
     ↓
-[Structured Data]
+[Dados Estruturados]
     ↓
-Render on Frontend
+Renderizar no Frontend
 ```
 
-### Extraction Capabilities
+### Capacidades de Extração
 
-**Regex-based detection:**
-- Portuguese names with accents (João, André, etc.)
-- Email validation (RFC-like pattern)
-- Brazilian phone format `(XX) 9XXXX-XXXX`
-- City + state detection
-- LinkedIn/GitHub profile URLs with @username
-- 30+ programming languages and frameworks
-- Cloud platforms and DevOps tools
-- Tech stack deduplication (case-insensitive)
+**Detecção baseada em regex:**
+
+- Nomes em português com acentos (João, André, etc.)
+- Validação de email (padrão similar a RFC)
+- Formato de telefone brasileiro `(XX) 9XXXX-XXXX`
+- Detecção de cidade + estado
+- URLs de perfil LinkedIn/GitHub com @username
+- 30+ linguagens de programação e frameworks
+- Plataformas cloud e ferramentas DevOps
+- Deduplicação de tech stack (case-insensitive)
 
 ---
 
-## File Structure
+## Estrutura de Arquivos
 
 ```
 resume-analyzer/
 ├── public/
-│   └── index.html           # Frontend SPA
+│   └── index.html           # SPA Frontend
 ├── src/
-│   ├── server.js            # Express setup & routes
-│   ├── aiProvider.js        # CVParse + regex extraction logic
-│   ├── fileValidator.js     # File validation & magic bytes
-│   └── logger.js            # Winston configuration
-├── .env.example             # Environment template
+│   ├── server.js            # Setup Express & rotas
+│   ├── aiProvider.js        # Lógica CVParse + extração regex
+│   ├── fileValidator.js     # Validação de arquivo & magic bytes
+│   └── logger.js            # Configuração Winston
+├── .env.example             # Template de ambiente
 ├── .gitignore
 ├── package.json
 └── README.md
@@ -219,32 +207,35 @@ resume-analyzer/
 
 ---
 
-## Development
+## Desenvolvimento
 
-### Start Dev Server
+### Iniciar Servidor de Dev
 
 ```bash
 npm run dev
 ```
 
-Auto-restarts on file changes.
+Auto-reinicia em mudanças de arquivo.
 
-### Testing
+### Testes
 
-**Web Interface:**
-- Open `http://localhost:3000`
-- Upload a PDF or TXT resume
-- View real-time analysis
+**Interface Web:**
 
-**Command Line:**
+- Abra `http://localhost:3000`
+- Faça upload de um currículo PDF ou TXT
+- Visualize análise em tempo real
+
+**Linha de Comando:**
+
 ```bash
 curl -X POST http://localhost:3000/api/analyze \
-  -F "file=@your-resume.pdf"
+  -F "file=@seu-curriculo.pdf"
 ```
 
 ### Logs
 
-Detailed logs in `logs/error.log`:
+Logs detalhados em `logs/error.log`:
+
 ```bash
 tail -f logs/error.log
 ```
@@ -253,20 +244,20 @@ tail -f logs/error.log
 
 ## Performance
 
-| Metric | Value |
-|--------|-------|
-| Regex analysis | ~200ms |
-| CVParse analysis | 2-30s |
-| Max file size | 25MB |
-| Memory baseline | ~50-100MB |
+| Métrica                   | Valor     |
+| ------------------------- | --------- |
+| Análise Regex             | ~200ms    |
+| Análise CVParse           | 2-30s     |
+| Tamanho máximo de arquivo | 25MB      |
+| Linha de base de memória  | ~50-100MB |
 
 ---
 
-## Customization
+## Customização
 
-### Add Tech Keywords
+### Adicionar Palavras-chave de Tecnologia
 
-Edit `src/aiProvider.js` → `extractRegexData()`:
+Edite `src/aiProvider.js` → `extractRegexData()`:
 
 ```javascript
 linguagens: removeDuplicates(
@@ -274,13 +265,13 @@ linguagens: removeDuplicates(
 ),
 ```
 
-### Adjust Polling Timeout
+### Ajustar Timeout de Polling
 
 ```javascript
-const maxAttempts = 120; // 10 minutes (default: 60 = 5 min)
+const maxAttempts = 120; // 10 minutos (padrão: 60 = 5 min)
 ```
 
-### Change Port
+### Alterar Porta
 
 ```bash
 PORT=8080 npm run dev
@@ -288,29 +279,32 @@ PORT=8080 npm run dev
 
 ---
 
-## Production Deployment
+## Deployment em Produção
 
-### Environment
+### Ambiente
 
 ```env
 NODE_ENV=production
 PORT=3000
-CVPARSE_API_KEY=your_production_key
+CVPARSE_API_KEY=sua_chave_producao
 ```
 
-### Deployment Platforms
+### Plataformas de Deploy
 
 **Vercel:**
+
 ```bash
 vercel --prod
 ```
 
 **Heroku:**
+
 ```bash
 git push heroku main
 ```
 
 **Docker:**
+
 ```bash
 docker build -t resume-analyzer .
 docker run -p 3000:3000 -e CVPARSE_API_KEY=xxx resume-analyzer
@@ -318,54 +312,56 @@ docker run -p 3000:3000 -e CVPARSE_API_KEY=xxx resume-analyzer
 
 ---
 
-## Error Handling
+## Tratamento de Erros
 
-| Error | Solution |
-|-------|----------|
-| `Port 3000 in use` | `PORT=3001 npm run dev` |
-| `File too large` | Max 25MB, check upload limits |
-| `CVParse timeout` | Regex fallback handles automatically |
-| `Invalid file format` | Upload valid PDF or TXT |
-
----
-
-## 🤖 Built with GitHub Copilot AI
-
-This project was architected and implemented with the assistance of **GitHub Copilot**, demonstrating how AI can accelerate senior-level development while maintaining code quality and best practices.
-
-**Key AI-assisted components:**
-- Two-tier fallback system architecture
-- Intelligent regex extraction patterns
-- Error handling and logging strategy
-- Production-ready code structure
-
-**Result:** Professional-grade codebase built efficiently without sacrificing quality or clarity.
+| Erro                          | Solução                                  |
+| ----------------------------- | ---------------------------------------- |
+| `Porta 3000 em uso`           | `PORT=3001 npm run dev`                  |
+| `Arquivo muito grande`        | Máximo 25MB, verificar limites de upload |
+| `Timeout do CVParse`          | Fallback regex lida automaticamente      |
+| `Formato de arquivo inválido` | Faça upload de PDF ou TXT válido         |
 
 ---
 
-## Contributing
+## 🤖 Desenvolvido com GitHub Copilot AI
+
+Este projeto foi arquitetado e implementado com a assistência do **GitHub Copilot**, demonstrando como a IA pode acelerar o desenvolvimento de nível avançado mantendo qualidade de código e melhores práticas.
+
+**Componentes assistidos por IA:**
+
+- Arquitetura de sistema com fallback em dois níveis
+- Padrões de extração inteligentes com regex
+- Estratégia de tratamento de erros e logging
+- Estrutura de código pronto para produção
+
+**Resultado:** Codebase profissional construído eficientemente sem sacrificar qualidade ou clareza.
+
+---
+
+## Contribuindo
 
 ```bash
-git checkout -b feature/your-feature
-git commit -am 'Add feature'
-git push origin feature/your-feature
+git checkout -b feature/sua-funcionalidade
+git commit -am 'Adicionar funcionalidade'
+git push origin feature/sua-funcionalidade
 ```
 
-Then open a Pull Request.
+Então abra um Pull Request.
 
 ---
 
-## License
+## Licença
 
 MIT © 2026 Jonas Perez
 
 ---
 
-## Support
+## Suporte
 
-- 📧 Email: jonas@example.com
+- 📧 Email: jonasperezdev@gmail.com
 - 🐛 Issues: [GitHub Issues](https://github.com/JonasPerezDev/resume-analyzer/issues)
+- 💼 LinkedIn: [Jonas Perez Dev](https://linkedin.com/in/jonas-perez-dev)
 
 ---
 
-**Made with ❤️ by Jonas Perez** — Senior Fullstack Developer
+**Feito com ❤️ por Jonas Perez** — Dev Front-End Junior
